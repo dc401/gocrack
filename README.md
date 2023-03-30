@@ -50,10 +50,11 @@ This performance could be different if there were other more complex functions u
 In almost every single use of a dictionary iterated list only method of cracking a hash; the single thread was faster performing when used on the same system between a 77KB file vs. a 138 MB file with many more lines.
 
 There's some great resources to learn about the concurrent processing in Go using the scheduler in the following resources:
-https://www.ardanlabs.com/blog/2015/02/scheduler-tracing-in-go.html
-https://www.developer.com/languages/go-scheduler/
-https://levelup.gitconnected.com/how-does-golang-channel-works-6d66acd54753
-https://www.practical-go-lessons.com/chap-30-concurrency
+ - https://www.ardanlabs.com/blog/2015/02/scheduler-tracing-in-go.html
+ - https://www.developer.com/languages/go-scheduler/
+ - https://levelup.gitconnected.com/how-does-golang-channel-works-6d66acd54753
+ - https://www.practical-go-lessons.com/chap-30-concurrency
+
 
 ![enter image description here](https://raw.githubusercontent.com/dc401/gocrack/main/singlethread-vs-multithread-gocrack-perf.png)
 
