@@ -48,20 +48,22 @@ func crackRange(minline int, maxline int, filename string, wg *sync.WaitGroup) {
 		panic(err)
 	}
 	defer fileHandle.Close()
-	counterInt := minline
+	counterInt := 0
 	scanner := bufio.NewScanner(fileHandle)
-	//line := "" //must define variable since for loop causes scope issues
-	for counterInt <= maxline {
-		for scanner.Scan() {
+	for scanner.Scan() {
+		if counterInt >= minline {
 			line := scanner.Text()
-			counterInt++
 			hashedEntry := hashString(line)
 			if hashedEntry == checkHash {
-				foundLineNum := strconv.Itoa(counterInt)
+				foundLineNum := strconv.Itoa(counterInt + 1)
 				fmt.Println("Found Password on line " + "(" + foundLineNum + "): " + line)
 				return
 			}
+			if counterInt >= maxline {
+				return
+			}
 		}
+		counterInt++
 	}
 }
 
