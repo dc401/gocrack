@@ -1,3 +1,4 @@
+//THIS IS THE MULTI-THREADED FILE BATCH FINAL VERSION
 package main
 
 import (
@@ -7,26 +8,18 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
 /*
-	requires SHA2 with 256 bytes 64 rounds
-
-https://gchq.github.io/CyberChef/#recipe=SHA2('256',64,160)&input=Zm9vdGJhbGw
-echo football | sha256sum  produces -> 205b60ee79914af6a09b897170b522c5e16366214b9a0735b4eb550f4b14a3c8
-TL;DR - Basically, SHA1-256 mode vs. SHA2-256 mode
-
-Use a password further down the list to compare sequential vs. concurrent job scheduler
+Requires SHA2 with 256 bytes 64 rounds
 https://gchq.github.io/CyberChef/#recipe=SHA2('256',64,160)&input=SlVTVElOMTk5Mw
 JUSTIN1993 : 96306567b5683a463820ce53dd484eccc57c53aaa3c6d5f74018da1b8ef99815
 */
+
 var checkHash string = "96306567b5683a463820ce53dd484eccc57c53aaa3c6d5f74018da1b8ef99815"
 
-/*
-wrap the hash creating objects into a function
-function definitions require return at the top
-*/
 func hashString(inputString string) string {
 	hashObject := sha256.New()
 	hashObject.Write([]byte(inputString))
@@ -34,41 +27,66 @@ func hashString(inputString string) string {
 	return hex.EncodeToString(calculatedHash)
 }
 
-func main() {
-	/*
-	  https://yourbasic.org/golang/measure-execution-time/
-	  Found this sweet time measurement benchmark
-	*/
-	startTime := time.Now()
-
-	fmt.Println("Trying Hash: " + checkHash)
-
-	//open file and defer until main returns
-	fileHandle, err := os.Open("rockyou-full.txt")
+// count lines in file to split between workers
+func countLines(filename string) int {
+	fileHandle, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}
 	defer fileHandle.Close()
-
-	//set a counter just to see which line in your list works
 	counterInt := 0
-
-	//create scanner object and iterate foo
 	scanner := bufio.NewScanner(fileHandle)
 	for scanner.Scan() {
-		line := scanner.Text()
 		counterInt++
-		//you can use := vs define var foo type format inside a function struct
-		hashedEntry := hashString(line)
-		//fmt.Println("Entry: " + line +" : " + hashedEntry )
-		if hashedEntry == checkHash {
-			foundLineNum := strconv.Itoa(counterInt)
-			fmt.Println("Found Password on line " + "(" + foundLineNum + "): " + line)
-			//exits iteration subroutine back to main
-			break
-		}
-
 	}
+	return counterInt
+}
+
+func crackRange(minline int, maxline int, filename string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fileHandle, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer fileHandle.Close()
+	counterInt := 0
+	scanner := bufio.NewScanner(fileHandle)
+	for scanner.Scan() {
+		if counterInt >= minline {
+			line := scanner.Text()
+			hashedEntry := hashString(line)
+			if hashedEntry == checkHash {
+				foundLineNum := strconv.Itoa(counterInt + 1)
+				fmt.Println("Found Password on line " + "(" + foundLineNum + "): " + line)
+				return
+			}
+			if counterInt >= maxline {
+				return
+			}
+		}
+		counterInt++
+	}
+}
+
+func main() {
+	startTime := time.Now()
+	fmt.Println("Trying Hash: " + checkHash)
+	//count total lines and split between worker jobs
+	totalCount := countLines("rockyou-odd.txt")
+	halfCount := totalCount / 2
+	fmt.Println("File line count: " + strconv.Itoa(halfCount))
+	fmt.Println("File half line count: " + strconv.Itoa(halfCount))
+
+	//use a WaitGroup to ensure all goroutines complete before ending the program
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go crackRange(0, halfCount, "rockyou-full.txt", &wg)
+	go crackRange(halfCount, totalCount, "rockyou-full.txt", &wg)
+
+	//wait for all goroutines to complete
+	wg.Wait()
+
 	//print out the nanoseconds spent
 	duration := time.Since(startTime)
 	fmt.Println("Runtime Nanoseconds: ")
