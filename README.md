@@ -41,13 +41,15 @@ The example files are suffixed with main.go.multithreaded and main.go.singlethre
     go build gocrack-multithreaded ./main.go
    
 ## Performance
-Based on my original single threaded code. I had ChatGPT-4 re-factor to include the use of concurrency (async) to include waitgroups, the go scheduler subroutines, and channels to pass the details back. 
+Based on my original single threaded code. I had recommendations from ChatGPT to re-factor to include the use of concurrency (async) to include waitgroups, the go scheduler subroutines, and channels to pass the details back. 
 
 The results regardless of file size on a MacOS 13.2 M1 Pro 2022 year make was a almost double main function exit runtime because of the channel spawn thread and wait queue overhead on a full unsorted rockyou.txt original list. 
 
 This performance could be different if there were other more complex functions used, such as transposition, masking, and salting concatenation. 
 
 In almost every single use of a dictionary iterated list only method of cracking a hash; the single thread was faster performing when used on the same system between a 77KB file vs. a 138 MB file with many more lines.
+
+The best method to utilize multi threaded was to **batch** the dictionary in half, and then run 2 concurrent goroutine processes with a waitgroup synced ***without*** a channel that screws with the overhead. This resulted in a 1200% increase to near 0 second performance vs. 5.6 for single threaded and the 15 or more seconds using the channel state control. The latest batch (split) method is in the latest main.go file.
 
 There's some great resources to learn about the concurrent processing in Go using the scheduler in the following resources:
  - https://www.ardanlabs.com/blog/2015/02/scheduler-tracing-in-go.html
@@ -58,6 +60,7 @@ There's some great resources to learn about the concurrent processing in Go usin
 
 ![enter image description here](https://raw.githubusercontent.com/dc401/gocrack/main/singlethread-vs-multithread-gocrack-perf.png)
 
+
 ## Concurrency with Channeling in Go
 ![enter image description here](https://raw.githubusercontent.com/dc401/gocrack/main/go-channel-scheduler-example.png)
 
@@ -67,4 +70,4 @@ No expressed or implicit warranty or liability of any kind. Run and re-factor at
 This was just an quick coding interest in learning GoLang over Python for me.
 
 ## Author
-Dennis Chow dchow[AT]xtecsystems.com March 29, 2023 - Single Threaded Example , Enhanced by Chat GPT-4 for the re-factored Multi-threaded example
+Dennis Chow dchow[AT]xtecsystems.com March 29, 2023 
