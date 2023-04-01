@@ -1,6 +1,10 @@
 # gocrack
 Example multi-threaded and single-threaded GoLang ability to crack SHA2-256 based hashes using wordlists
-The example files are suffixed with main.go.multithreaded and main.go.singlethreaded accordingly. Remain one at a time and run as main.go or build it separately. 
+The example files are suffixed with main.go.multithreaded and main.go.singlethreaded accordingly. Remain one at a time and run as main.go or build it separately.
+
+## Article
+You can find my explanatory article at:
+ - https://dwchow.medium.com/multi-threaded-hash-cracking-in-go-798b3b4d5c49
 
 ## Usage
 **Hash a password or pass a  SHA2-256 mode hash and modify the variable accordingly. For example, in the rockyou.txt wordlist:**
